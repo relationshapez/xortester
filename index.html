@@ -1,0 +1,551 @@
+<!--
+  Copyright (c) 2026 Alan Miller
+  Released under the MIT License
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Relationshapez: XOR Tester</title>
+  <style>
+    :root {
+      --gw-blue: #033C5A;
+      --gw-buff: #D6BF91;
+      --gw-buff-light: #f5efe3;
+      --paper: #fffdfa;
+      --white: #ffffff;
+      --good-green: #1E7F4F;
+      --bad-red: #A22C29;
+      --ink-muted: rgba(3, 60, 90, 0.72);
+      --shadow: 0 12px 30px rgba(3, 60, 90, 0.14);
+      --radius-lg: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, var(--gw-buff-light) 0%, #fbf8f2 100%);
+      color: var(--gw-blue);
+    }
+
+    body { padding: 12px; }
+
+    .app-shell {
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto;
+      min-height: calc(100vh - 24px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      background: var(--white);
+      border: 3px solid var(--gw-blue);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .content {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--paper);
+      border: 2px solid var(--gw-buff);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 16px;
+    }
+
+    label {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    input[type="number"] {
+      width: 82px;
+      min-height: 46px;
+      border: 2px solid var(--gw-blue);
+      border-radius: 14px;
+      padding: 8px 10px;
+      color: var(--gw-blue);
+      background: var(--white);
+      font-size: 1.15rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .problem-card {
+      min-height: 190px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stack-wrap {
+      display: grid;
+      grid-template-columns: auto auto;
+      column-gap: 14px;
+      align-items: end;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-weight: 800;
+      color: var(--gw-blue);
+    }
+
+    .problem-stack {
+      text-align: right;
+      font-size: clamp(2.2rem, 13vw, 4.1rem);
+      line-height: 1.08;
+      letter-spacing: 0.02em;
+      min-width: 7ch;
+    }
+
+    .operator-stack {
+      text-align: left;
+      font-size: clamp(2.2rem, 13vw, 4.1rem);
+      line-height: 1.08;
+      padding-bottom: 0.02em;
+    }
+
+    .underline-row {
+      grid-column: 1 / 3;
+      border-top: 5px solid var(--gw-blue);
+      margin-top: 8px;
+      width: 100%;
+    }
+
+    .answer-row {
+      display: grid;
+      grid-template-columns: 7ch auto;
+      column-gap: 14px;
+      justify-content: center;
+      align-items: center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: clamp(2.2rem, 13vw, 4.1rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: 0.02em;
+    }
+
+    .answer-input {
+      width: 100%;
+      min-width: 0;
+      min-height: 68px;
+      border: 2px solid var(--gw-blue);
+      border-radius: 18px;
+      padding: 8px 0;
+      color: var(--gw-blue);
+      background: var(--white);
+      font: inherit;
+      text-align: right;
+      text-transform: uppercase;
+    }
+
+    .answer-input::placeholder {
+      color: rgba(3, 60, 90, 0.32);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .answer-spacer {
+      width: auto;
+      visibility: hidden;
+      pointer-events: none;
+      font: inherit;
+    }
+
+    .answer-input:focus,
+    input[type="number"]:focus {
+      outline: none;
+      box-shadow: 0 0 0 5px rgba(3, 60, 90, 0.14);
+    }
+
+    .controls-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .btn {
+      appearance: none;
+      border: 2px solid var(--gw-blue);
+      border-radius: 16px;
+      min-height: 52px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+      box-shadow: 0 4px 10px rgba(3, 60, 90, 0.09);
+    }
+
+    .btn.primary {
+      background: var(--gw-blue);
+      color: var(--white);
+    }
+
+    .btn.buff {
+      background: var(--gw-buff);
+      color: var(--gw-blue);
+      border-color: var(--gw-buff);
+    }
+
+    .btn:active { transform: scale(0.985); }
+
+    .btn:hover:not(:disabled),
+    .btn:focus-visible:not(:disabled) {
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .solution-card {
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: center;
+      background: #fcfaf5;
+      transition: opacity 0.12s ease;
+    }
+
+    .solution-card.hidden-visibility {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .feedback-line {
+      margin: 0;
+      text-align: center;
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+
+    .feedback-line.correct { color: var(--good-green); }
+    .feedback-line.incorrect { color: var(--bad-red); }
+
+    .binary-work {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 116px;
+    }
+
+    .binary-solution-wrap {
+      display: grid;
+      grid-template-columns: auto auto;
+      column-gap: 10px;
+      align-items: end;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-weight: 800;
+      color: var(--gw-blue);
+    }
+
+    .binary-solution-stack {
+      text-align: right;
+      font-size: clamp(1.25rem, 5.2vw, 1.8rem);
+      line-height: 1.16;
+      letter-spacing: 0.02em;
+      white-space: pre;
+    }
+
+    .binary-operator-stack {
+      text-align: left;
+      font-size: clamp(1.25rem, 5.2vw, 1.8rem);
+      line-height: 1.16;
+    }
+
+    .binary-underline {
+      grid-column: 1 / 3;
+      border-top: 3px solid var(--gw-blue);
+      margin-top: 5px;
+      width: 100%;
+    }
+
+    .binary-result-line {
+      grid-column: 1 / 2;
+      text-align: right;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: clamp(1.25rem, 5.2vw, 1.8rem);
+      line-height: 1.16;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+
+    .solution-answer {
+      margin-top: 2px;
+      border: 2px solid var(--gw-buff);
+      border-radius: 16px;
+      padding: 12px;
+      background: var(--white);
+      color: var(--gw-blue);
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+
+    .outline-correct {
+      border-width: 4px !important;
+      border-color: var(--good-green) !important;
+      box-shadow: 0 0 0 6px rgba(30, 127, 79, 0.28) !important;
+    }
+
+    .outline-incorrect {
+      border-width: 4px !important;
+      border-color: var(--bad-red) !important;
+      box-shadow: 0 0 0 6px rgba(162, 44, 41, 0.28) !important;
+    }
+
+    noscript .card {
+      margin: 18px;
+      color: var(--bad-red);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    @media (max-width: 560px) {
+      body { padding: 10px; }
+
+      .app-shell {
+        min-height: calc(100vh - 20px);
+        align-items: flex-start;
+      }
+
+      .content {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .controls-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .problem-card { min-height: 172px; }
+      .solution-card { min-height: 322px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <div class="app">
+      <div class="content">
+        <section class="card settings-row" aria-label="Settings">
+          <label for="base-input">Base</label>
+          <input id="base-input" type="number" min="2" max="16" step="1" value="10" inputmode="numeric" aria-label="Base, from 2 to 16" />
+        </section>
+
+        <section class="card problem-card" aria-label="XOR problem">
+          <div class="stack-wrap" aria-live="polite">
+            <div class="problem-stack">
+              <div id="top-number">0</div>
+              <div id="bottom-number">0</div>
+            </div>
+            <div class="operator-stack" aria-label="xor operation">
+              <div>&nbsp;</div>
+              <div>⊕</div>
+            </div>
+            <div class="underline-row"></div>
+          </div>
+        </section>
+
+        <section class="answer-row" aria-label="Answer entry">
+          <input id="answer-input" class="answer-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Answer" aria-label="Enter the XOR result" />
+          <div class="answer-spacer" aria-hidden="true">⊕</div>
+        </section>
+
+        <section class="controls-2" aria-label="Controls">
+          <button id="check-btn" class="btn primary" type="button" disabled>Check</button>
+          <button id="refresh-btn" class="btn buff" type="button">Refresh</button>
+        </section>
+
+        <section id="solution-card" class="card solution-card hidden-visibility" aria-live="polite" aria-label="Solution">
+          <p id="feedback-line" class="feedback-line"></p>
+          <div class="binary-work">
+            <div class="binary-solution-wrap" aria-label="Binary XOR alignment">
+              <div id="binary-inputs" class="binary-solution-stack"></div>
+              <div class="binary-operator-stack"><div>&nbsp;</div><div>⊕</div></div>
+              <div class="binary-underline"></div>
+              <div id="binary-result" class="binary-result-line"></div>
+            </div>
+          </div>
+          <div id="solution-answer" class="solution-answer"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <noscript>
+    <div class="card">This tool requires JavaScript to generate and check XOR practice questions.</div>
+  </noscript>
+
+  <script>
+    (() => {
+      const topNumberEl = document.getElementById('top-number');
+      const bottomNumberEl = document.getElementById('bottom-number');
+      const baseInput = document.getElementById('base-input');
+      const answerInput = document.getElementById('answer-input');
+      const checkBtn = document.getElementById('check-btn');
+      const refreshBtn = document.getElementById('refresh-btn');
+      const solutionCard = document.getElementById('solution-card');
+      const feedbackLine = document.getElementById('feedback-line');
+      const binaryInputs = document.getElementById('binary-inputs');
+      const binaryResult = document.getElementById('binary-result');
+      const solutionAnswer = document.getElementById('solution-answer');
+
+      let currentA = 0;
+      let currentB = 0;
+      let currentBase = 10;
+
+      function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function clampBase(value) {
+        const parsed = Number.parseInt(value, 10);
+        if (Number.isNaN(parsed)) return 10;
+        return Math.min(16, Math.max(2, parsed));
+      }
+
+      function formatNumber(value, base) {
+        return value.toString(base).toUpperCase();
+      }
+
+      function bitWidth() {
+        return Math.max(currentA, currentB, currentA ^ currentB).toString(2).length;
+      }
+
+      function paddedBinary(value) {
+        return value.toString(2).padStart(bitWidth(), '0');
+      }
+
+      function normalizeAnswer(text) {
+        return text.trim().toUpperCase();
+      }
+
+      function parseAnswer(text) {
+        const normalized = normalizeAnswer(text);
+        if (!normalized) return NaN;
+        const validDigits = '0123456789ABCDEF'.slice(0, currentBase);
+        for (const char of normalized) {
+          if (!validDigits.includes(char)) return NaN;
+        }
+        return Number.parseInt(normalized, currentBase);
+      }
+
+      function clearFeedback() {
+        answerInput.classList.remove('outline-correct', 'outline-incorrect');
+        feedbackLine.className = 'feedback-line';
+        feedbackLine.textContent = '';
+        binaryInputs.textContent = '';
+        binaryResult.textContent = '';
+        solutionAnswer.textContent = '';
+        solutionCard.classList.add('hidden-visibility');
+      }
+
+      function renderProblem() {
+        topNumberEl.textContent = formatNumber(currentA, currentBase);
+        bottomNumberEl.textContent = formatNumber(currentB, currentBase);
+      }
+
+      function newProblem() {
+        currentA = randInt(0, 99);
+        currentB = randInt(0, 99);
+        answerInput.value = '';
+        checkBtn.disabled = true;
+        clearFeedback();
+        renderProblem();
+        answerInput.focus({ preventScroll: true });
+      }
+
+      function updateCheckState() {
+        checkBtn.disabled = normalizeAnswer(answerInput.value).length === 0;
+      }
+
+      function showSolution() {
+        const result = currentA ^ currentB;
+        const userValue = parseAnswer(answerInput.value);
+        const correct = userValue === result;
+        const answerInBase = formatNumber(result, currentBase);
+        const binaryAnswer = paddedBinary(result);
+
+        clearFeedback();
+        solutionCard.classList.remove('hidden-visibility');
+
+        feedbackLine.textContent = correct ? 'Correct' : 'Incorrect';
+        feedbackLine.classList.add(correct ? 'correct' : 'incorrect');
+        answerInput.classList.add(correct ? 'outline-correct' : 'outline-incorrect');
+
+        binaryInputs.textContent = `${paddedBinary(currentA)}\n${paddedBinary(currentB)}`;
+        binaryResult.textContent = binaryAnswer;
+
+        if (currentBase === 2) {
+          solutionAnswer.textContent = `Correct answer: ${binaryAnswer}`;
+        } else {
+          solutionAnswer.textContent = `Correct answer: ${answerInBase} in Base-${currentBase}`;
+        }
+      }
+
+      baseInput.addEventListener('input', () => {
+        currentBase = clampBase(baseInput.value);
+        renderProblem();
+        clearFeedback();
+        updateCheckState();
+      });
+
+      baseInput.addEventListener('change', () => {
+        currentBase = clampBase(baseInput.value);
+        baseInput.value = String(currentBase);
+        renderProblem();
+        clearFeedback();
+        updateCheckState();
+      });
+
+      answerInput.addEventListener('input', () => {
+        answerInput.value = answerInput.value.toUpperCase();
+        clearFeedback();
+        updateCheckState();
+      });
+
+      answerInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !checkBtn.disabled) {
+          showSolution();
+        }
+      });
+
+      checkBtn.addEventListener('click', showSolution);
+      refreshBtn.addEventListener('click', newProblem);
+
+      newProblem();
+    })();
+  </script>
+</body>
+</html>
