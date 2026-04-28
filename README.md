@@ -4,7 +4,7 @@ XOR Tester is a single-file HTML flashcard-style practice tool for the XOR opera
 
 To run remotely:
 
-- Access the tool at https://relationshapez.github.io/xor/
+- Access the tool at https://relationshapez.github.io/xortester/
 
 ## Files
 
